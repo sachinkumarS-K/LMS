@@ -2,6 +2,8 @@
 import mongoose from "mongoose";
 import "dotenv/config.js";
 
+mongoose.set('strictQuery', false);
+
 export default async function dbConnect() {
      try {
           const { connection } = await mongoose.connect(process.env.MONGO_URL);
@@ -9,6 +11,7 @@ export default async function dbConnect() {
 
      } catch (error) {
           console.log("Issue while connecting to database");
-          console.log(error.message)
+          console.log(error.message);
+          process.exit(1);
      }
 }
