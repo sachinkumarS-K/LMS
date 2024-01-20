@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import isLoggedIn from "../middleware/auth.middleware.js";
+import { authorizedRoles , isLoggedIn } from "../middleware/auth.middleware.js";
 import {
   getAllCourses,
   getLectureByCourseId,
@@ -15,12 +15,13 @@ const router = Router();
 
 router.route("/")
      .get(getAllCourses)
-     .post(validate(createCourseSchema),createCourse);
+     .post(isLoggedIn , authorizedRoles('ADMIN'), validate(createCourseSchema),createCourse);
 
-router.route("/:id")
-     .get(isLoggedIn, getLectureByCourseId)
-     .put(updateCourse)
-     .delete(deleteCourse);
+router
+  .route("/:id")
+  .get(isLoggedIn, authorizedRoles("ADMIN"), getLectureByCourseId)
+  .put(isLoggedIn, authorizedRoles("ADMIN"), updateCourse)
+  .delete(isLoggedIn, authorizedRoles("ADMIN"), deleteCourse);
 
 
 export default router;

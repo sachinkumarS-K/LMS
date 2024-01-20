@@ -1,13 +1,14 @@
 import USER from "../model/userModel.js"
+import mailSender from "../utils/mailSender.js"
 import AppError from "../utils/error.utils.js";
-
+import cloudinary from "cloudinary";
+import crypto from "crypto";
+import fs from 'fs/promises'
 const cookieOption = {
      maxAge: 7 * 24 * 60 * 60 * 1000,
      httpOnly: true,
      secure : true
 }
-
-
 const register = async (req, res , next) => {
      const { fullName, email, password } = req.body;
 
@@ -32,6 +33,25 @@ const register = async (req, res , next) => {
           return next(new AppError("User registration failed , please try again" , 400));
      }
      
+     if (req.file) {
+       try {
+         const result = await cloudinary.v2.uploader.upload(req.file.path, {
+           folder: "lms",
+           width: 250,
+           height: 150,
+           gravity: "faces",
+           crop: "fill",
+         });
+         if (result) {
+           user.avatar.public_id = result.public_id;
+              user.avatar.secure_url = result.secure_url;
+              fs.rm(`uploads/${req.file.filename}`);
+         }
+       } catch (error) {
+             return next(new AppError("Failed to upload file please try again !! ", 500));
+       }
+     }
+
 
      const token = user.generateJwtToken()
      await user.save();
@@ -96,9 +116,72 @@ const login = async (req, res , next) => {
 
 };
 
-export {
-     register,
-     login,
-     getProfile,
-     logout
+
+const forgetPassword = async (req, res, next) => {
+     try {
+          const { email } = req.body;
+          console.log(email)
+       if (!email) return next(new AppError("email is required", 400));
+
+       const user = await USER.findOne({ email });
+
+       if (!user) return next(new AppError("email is not registered!!", 400));
+
+       const resetToken = await user.generateResetPasswordToken();
+         
+       await user.save();
+       const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+          try {
+               const message = `${resetPasswordUrl}`;
+               const subject = "email for Password change ";
+         await mailSender(email, subject, message);
+         return res.status(200).json({
+           success: true,
+           message: `Reset password token has been sent to ${email} successfully`,
+         });
+       } catch (error) {
+         (user.forgotPasswordExpiry = undefined),
+           (user.forgotPasswordExpiry = undefined);
+         await user.save();
+         return next(new AppError(error.message, 500));
+       }
+     } catch (error) {
+          return next(new AppError(error.message, 500));
+     }
 }
+
+const resetPassword = async (req, res, next) => {
+     try {
+          const { resetToken } = req.params;
+          const pasword = req.body.password;
+          
+          const forgotPasswordToken = crypto
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
+          const user = await USER.findOne({
+               forgotPasswordToken,
+               forgotPasswordExpiry: { $gt: Date.now() 
+               }
+          });
+
+          if (!user) {
+               return next("Token is invalid or expired , please try again", 500);
+          }
+          user.password = pasword 
+          user.forgotPasswordExpiry = undefined;
+          user.forgotPasswordToken = undefined;
+          await user.save();
+
+          return res.status(200).json({
+               success: true,
+               message: "Password updated successfully",
+
+          })
+     } catch (error) {
+          return next(new AppError(error.message, 500));
+     }
+};
+
+
+export { register, login, getProfile, logout, resetPassword, forgetPassword };

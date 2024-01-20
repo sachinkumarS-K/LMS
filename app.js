@@ -6,6 +6,7 @@ import morgan from "morgan";
 import userRoutes from "./routes/userRoutes.js"
 import couseRoutes from "./routes/courseRoutes.js"
 import errorMiddleWare from "./middleware/error.middleware.js";
+import {cloudinaryConnect} from "./config/cloudinary.js";
 const app = express();
 
 app.use(cors({
@@ -13,6 +14,7 @@ app.use(cors({
      credentials : true
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 
@@ -22,6 +24,7 @@ app.use("/api/v1/courses", couseRoutes);
 
 
 dbConnect();
+cloudinaryConnect();
 
 app.get("/hello", (req, res) => {
   res.send(`<h1> Hello from Backend </h1>`);

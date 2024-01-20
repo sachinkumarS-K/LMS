@@ -20,7 +20,6 @@ const courseSchema = new mongoose.Schema(
     thumbnail: {
       public_id: String,
       secure_url: String,
-     
     },
     lecture: [
       {

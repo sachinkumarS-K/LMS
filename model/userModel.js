@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt"
 import Jwt from "jsonwebtoken";
 import "dotenv/config.js";
+import crypto from 'crypto'
 const userSchema = new mongoose.Schema(
   {
     fullName: {
@@ -49,11 +50,8 @@ userSchema.pre("save", async function (next) {
 
     // Hash the password
     this.password = await bcrypt.hash(this.password, 10);
-
-    // Continue with the save operation
     next();
   } catch (error) {
-    // Handle the error as needed
     console.error("Error in pre-save hook:", error);
     next(error); // Pass the error to the next middleware or callback
   }
@@ -82,9 +80,23 @@ userSchema.methods = {
   comparePassword: async function (pass) {
     console.log(pass);
     const flag = await bcrypt.compare(pass, this.password);
-    console.log(flag)
+    console.log(flag);
     return flag;
-  }
+  },
+  generateResetPasswordToken:  async function (){
+    try {
+      const token = crypto.randomBytes(20).toString("hex");
+     
+      this.forgotPasswordToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+      this.forgotPasswordExpiry = Date.now() + 15 * 60 * 1000; //15 mins
+      return token;
+    } catch (error) {
+      console.log(error)
+    }
+  },
 };
 
 const USER = mongoose.model("USER", userSchema);
