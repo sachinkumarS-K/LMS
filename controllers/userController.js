@@ -55,7 +55,7 @@ const logout = async (req, res) => {
 
 const getProfile = async (req, res , next) => { 
     try {
-      const userId = req.user.id;
+      const userId = req.body.id;
       const user = await USER.findById(userId);
          return res.status(200).json({
               success: true,
@@ -70,14 +70,16 @@ const getProfile = async (req, res , next) => {
 const login = async (req, res , next) => { 
      try {
           const { email, password } = req.body;
-          if (!email || !password)
-            return next(new AppError("ALL fields are required", 400));
+          // if (!email || !password)
+          //   return next(new AppError("ALL fields are required", 400));
 
           const user = await USER.findOne({ email }).select("+password");
-
-          if (!user || !user.comparePassword(password))
-            return next(new AppError("Email password not matched", 400));
-
+        
+        const flag = user && (await user.comparePassword(password));
+         
+          if (!user || !flag ) {
+                return next(new AppError("Email password not matched", 400));
+          }
           const token = user.generateJwtToken();
           user.password = undefined;
 
@@ -89,7 +91,7 @@ const login = async (req, res , next) => {
             
           });
      } catch (error) {
-         return next(new AppError(e.message , 500))
+         return next(new AppError(error.message, 500));
      }
 
 };

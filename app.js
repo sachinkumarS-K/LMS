@@ -4,6 +4,7 @@ import cors from "cors"
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import userRoutes from "./routes/userRoutes.js"
+import couseRoutes from "./routes/courseRoutes.js"
 import errorMiddleWare from "./middleware/error.middleware.js";
 const app = express();
 
@@ -16,7 +17,9 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 
 
-app.use("/api/v1/user" , userRoutes)
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/courses", couseRoutes);
+
 
 dbConnect();
 
