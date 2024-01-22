@@ -12,10 +12,6 @@ const cookieOption = {
 const register = async (req, res , next) => {
      const { fullName, email, password } = req.body;
 
-     if (!fullName || !email || !password) {
-          return next(new AppError("ALL fields are required", 400));
-     }
-
      const userExists = await USER.findOne({ email });
      if (userExists) return next(new AppError("User already exists", 409));
 
@@ -38,7 +34,7 @@ const register = async (req, res , next) => {
          const result = await cloudinary.v2.uploader.upload(req.file.path, {
            folder: "lms",
            width: 250,
-           height: 150,
+           height: 250,
            gravity: "faces",
            crop: "fill",
          });
@@ -75,7 +71,7 @@ const logout = async (req, res) => {
 
 const getProfile = async (req, res , next) => { 
     try {
-      const userId = req.body.id;
+      const userId = req.user.id;
       const user = await USER.findById(userId);
          return res.status(200).json({
               success: true,
@@ -141,7 +137,7 @@ const forgetPassword = async (req, res, next) => {
          });
        } catch (error) {
          (user.forgotPasswordExpiry = undefined),
-           (user.forgotPasswordExpiry = undefined);
+           (user.forgotPasswordToken = undefined);
          await user.save();
          return next(new AppError(error.message, 500));
        }
@@ -183,5 +179,56 @@ const resetPassword = async (req, res, next) => {
      }
 };
 
+const updateUser = async (req, res, next) => {
+     try {
+       const { fullName } = req.body;
+       const id = req.user.id;
+       const user = await USER.findById(id);
+       if (!user) {
+         return next(new AppError("User does not exist please log in"), 400);
+          }
+          user.fullName = fullName;
+       if (req.file) {
+         try {
+           await cloudinary.v2.uploader.destroy(user.avatar.public_id);
+           const result = await cloudinary.v2.uploader.upload(req.file.path, {
+             folder: "lms",
+             width: 250,
+             height: 250,
+             gravity: "faces",
+             crop: "fill",
+           });
+           if (result) {
+             user.avatar.public_id = result.public_id;
+             user.avatar.secure_url = result.secure_url;
+             fs.rm(`uploads/${req.file.filename}`);
+           }
+         } catch (error) {
+           return next(
+             new AppError("Failed to upload file please try again !! ", 500)
+           );
+            }
+            
+          }
+          await user.save();
 
-export { register, login, getProfile, logout, resetPassword, forgetPassword };
+          return res.status(200).json({
+               success: true,
+               message: "profile updated successfully",
+               user
+          })
+     } catch (error) {
+       return next(new AppError(error.message), 400);
+     }
+}
+
+
+export {
+  register,
+  login,
+  getProfile,
+  logout,
+  resetPassword,
+  forgetPassword,
+  updateUser,
+};

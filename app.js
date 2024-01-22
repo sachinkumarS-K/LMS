@@ -5,8 +5,10 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import userRoutes from "./routes/userRoutes.js"
 import couseRoutes from "./routes/courseRoutes.js"
+import paymentRoute from "./routes/paymentRoute.js";
 import errorMiddleWare from "./middleware/error.middleware.js";
-import {cloudinaryConnect} from "./config/cloudinary.js";
+import { cloudinaryConnect } from "./config/cloudinary.js";
+import Razorpay from "razorpay"
 const app = express();
 
 app.use(cors({
@@ -21,17 +23,15 @@ app.use(morgan("dev"));
 
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/courses", couseRoutes);
+app.use("/api/v1/payments", paymentRoute);
 
 
 dbConnect();
 cloudinaryConnect();
 
-app.get("/hello", (req, res) => {
+app.get("/", (req, res) => {
   res.send(`<h1> Hello from Backend </h1>`);
 });
-
-
-
 
 app.use("*", (req , res) => {
      res.status(404).json({
@@ -41,5 +41,12 @@ app.use("*", (req , res) => {
 })
 
 app.use(errorMiddleWare);
+
+
+
+export const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_SECRET
+});
 
 export default app;

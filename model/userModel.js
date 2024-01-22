@@ -33,8 +33,12 @@ const userSchema = new mongoose.Schema(
         type: String,
       },
     },
+    subscription: {
+      id: String,
+      status : String
+    },
     forgotPasswordToken: String,
-    forgotPasswordExpiry: Date,
+    forgotPasswordExpiry: Date, 
   },
   {
     timestamps: true,

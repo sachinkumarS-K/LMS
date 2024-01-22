@@ -10,12 +10,13 @@ import {
 } from "../controllers/courseController.js";
 import validate from "../middleware/validate.middleware.js";
 import { createCourseSchema } from "../validator/authValidator.js";
+import { upload } from "../middleware/multer.middleware.js";
 
 const router = Router();
 
 router.route("/")
      .get(getAllCourses)
-     .post(isLoggedIn , authorizedRoles('ADMIN'), validate(createCourseSchema),createCourse);
+     .post(isLoggedIn , authorizedRoles('ADMIN'),upload.single('thumbnail'),validate(createCourseSchema),createCourse);
 
 router
   .route("/:id")
