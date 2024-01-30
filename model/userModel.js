@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 import Jwt from "jsonwebtoken";
 import "dotenv/config.js";
-import crypto from 'crypto'
+import crypto from "crypto";
 const userSchema = new mongoose.Schema(
   {
     fullName: {
       type: String,
-      required: true
+      required: true,
     },
     email: {
       type: String,
@@ -33,12 +33,27 @@ const userSchema = new mongoose.Schema(
         type: String,
       },
     },
+    message: [
+      {
+        name: {
+          type: String,
+        },
+        email: {
+          type: String,
+          required: true,
+          lowercase: true,
+        },
+        message: {
+          type: String,
+        },
+      },
+    ],
     subscription: {
       id: String,
-      status : String
+      status: String,
     },
     forgotPasswordToken: String,
-    forgotPasswordExpiry: Date, 
+    forgotPasswordExpiry: Date,
   },
   {
     timestamps: true,
@@ -82,15 +97,14 @@ userSchema.methods = {
     }
   },
   comparePassword: async function (pass) {
-    console.log(pass);
     const flag = await bcrypt.compare(pass, this.password);
-    console.log(flag);
+
     return flag;
   },
-  generateResetPasswordToken:  async function (){
+  generateResetPasswordToken: async function () {
     try {
       const token = crypto.randomBytes(20).toString("hex");
-     
+
       this.forgotPasswordToken = crypto
         .createHash("sha256")
         .update(token)
@@ -98,7 +112,7 @@ userSchema.methods = {
       this.forgotPasswordExpiry = Date.now() + 15 * 60 * 1000; //15 mins
       return token;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   },
 };
