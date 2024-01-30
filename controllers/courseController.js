@@ -48,11 +48,10 @@ const createCourse = async (req, res, next) => {
       );
     }
     if (req.file) {
-      console.log(req.file);
       const result = await cloudinary.v2.uploader.upload(req.file.path, {
         folder: "lms",
       });
-      console.log(result);
+
       if (result) {
         course.thumbnail.public_id = result.public_id;
         course.thumbnail.secure_url = result.secure_url;

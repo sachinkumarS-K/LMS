@@ -8,6 +8,7 @@ const cookieOption = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
   httpOnly: true,
   secure: true,
+  sameSite: "None",
 };
 const register = async (req, res, next) => {
   const { fullName, email, password } = req.body;
