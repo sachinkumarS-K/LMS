@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["https://lms-swart-eta.vercel.app/"],
+    origin: ["http://localhost:5173", "https://lms-swart-eta.vercel.app"],
     credentials: true,
   })
 );
