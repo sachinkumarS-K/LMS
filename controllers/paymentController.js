@@ -36,7 +36,6 @@ const buySubscription = async (req, res, next) => {
       customer_notify: 1,
       total_count: 12,
     });
-    // Update user's subscription information
 
     (user.subscription.id = subscription.id), await user.save();
 
@@ -92,16 +91,25 @@ const verifySubscription = async (req, res, next) => {
 };
 const cancelSubscription = async (req, res, next) => {
   try {
+    // Extract user ID from the request
     const id = req.user.id;
     const user = await USER.findById(id);
     const subscriptionId = user.subscription.id;
-    const subscription = razorpay.subscriptions.cancel(subscriptionId);
+
+    const subscription = await razorpay.subscriptions.cancel(subscriptionId);
+
     user.subscription.status = subscription.status;
     await user.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Subscription canceled successfully" });
   } catch (error) {
+    // Handle errors and pass them to the next middleware
     return next(new AppError(error.message, 500));
   }
 };
+
 const allPayments = async (req, res, next) => {
   try {
     const { count } = req.query;
