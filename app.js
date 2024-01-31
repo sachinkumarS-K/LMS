@@ -14,10 +14,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "*",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
+    origin: ["https://lms-swart-eta.vercel.app/"],
     credentials: true,
   })
 );
