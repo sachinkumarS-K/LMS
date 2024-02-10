@@ -1,10 +1,10 @@
 import Jwt from "jsonwebtoken";
 import AppError from "../utils/error.utils.js";
+import USER from "../model/userModel.js";
 
 const isLoggedIn = async (req, res, next) => {
   try {
     const { token } = req.cookies;
-    console.log(token);
 
     if (!token) {
       return next(new AppError("Un authenticated ! please login again ", 401));
@@ -30,4 +30,13 @@ const authorizedRoles =
     next();
   };
 
-export { isLoggedIn, authorizedRoles };
+const authorizedSubscriber = async (req, res, next) => {
+  const user = await USER.findById(req.user.id);
+
+  if (user.role.status !== "ACTIVE") {
+    return next(new AppError("You are not authorized for this action !!", 403));
+  }
+  next();
+};
+
+export { isLoggedIn, authorizedRoles, authorizedSubscriber };

@@ -3,7 +3,7 @@ import path from "path";
 
 const upload = multer({
   dest: "uploads/",
-  limits: { fieldSize: 50 * 1024 * 1024 }, // 50 MB limit
+  limits: { fieldSize: 500 * 1024 * 1024 }, // 50 MB limit
   storage: multer.diskStorage({
     destination: "uploads/",
     filename: (_req, file, cb) => {
@@ -16,9 +16,10 @@ const upload = multer({
     if (
       ext !== ".jpg" &&
       ext !== ".jpeg" &&
-      ext !== ".webp" && // Corrected file extension for WebP
+      ext !== ".webp" &&
       ext !== ".png" &&
-      ext !== ".mp4"
+      ext !== ".mp4" &&
+      ext !== ".mkv"
     ) {
       cb(new Error(`Unsupported file type !! ${ext}`), false);
     } else {
